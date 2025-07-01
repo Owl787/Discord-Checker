@@ -1,1 +1,1 @@
-start: python3 discord.py
+start: python3 bot.py
