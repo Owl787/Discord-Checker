@@ -19,7 +19,7 @@ async def on_raw_reaction_add(payload):
         return
     target = bot.get_channel(1389276304544764054)
     if target:
-        await target.send(f"#p {payload.user_id}")
+        await target.send(f"P {payload.user_id}")
 
 token = os.getenv("DISCORD_TOKEN")
 if not token:
