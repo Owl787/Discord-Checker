@@ -15,9 +15,9 @@ async def on_ready():
 async def on_raw_reaction_add(payload):
     if payload.user_id == bot.user.id:
         return
-    if payload.channel_id != YOUR_WATCH_CHANNEL_ID:
+    if payload.channel_id != 1388939559420559546:
         return
-    target = bot.get_channel(YOUR_TARGET_CHANNEL_ID)
+    target = bot.get_channel(1389276304544764054)
     if target:
         await target.send(f"#p {payload.user_id}")
 
