@@ -71,3 +71,7 @@ async def on_message(message):
 
     except Exception as e:
         await message.channel.send(f"Error: {e}")
+        token = os.getenv("DISCORD_TOKEN")
+if not token:
+    raise RuntimeError("❗ DISCORD_TOKEN is not set in env variables.")
+bot.run(token)
