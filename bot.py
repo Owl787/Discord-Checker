@@ -32,4 +32,5 @@ async def on_raw_reaction_add(payload):
         await target_channel.send(f"#p {user_id}")
 
 # Run the bot
-bot.run('MTM4OTUyNTE2MDM1NjQ3OTA0MA.GjYakb.Im_K5RZ7hqZMy2N69ZpxIn1cK68RalEmPOqdV4')
+import os
+bot.run(os.getenv("DISCORD_TOKEN"))
