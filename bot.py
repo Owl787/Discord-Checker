@@ -32,7 +32,7 @@ async def on_raw_reaction_add(payload):
         await target_channel.send(f"#p {user_id}")
 
 # Run the bot
-token = os.getenv("DISCORD_TOKEN")
+token = os.getenv("MTM4OTUyNTE2MDM1NjQ3OTA0MA.GlVhWo.e7i-YUePbNa7oNF9BTOogGwN1ecRHeTEonM8yk")
 if not token:
     raise ValueError("DISCORD_TOKEN is not set in environment variables.")
 
