@@ -1,64 +1,73 @@
 import os
 import discord
 from discord.ext import commands
-from dotenv import load_dotenv
+from collections import defaultdict
 
-load_dotenv()
+TOKEN = os.getenv("DISCORD_TOKEN")  # Make sure this is set in your environment
+
+# Set your control channel ID here
+CONTROL_CHANNEL_ID = 1389276304544764054  # <-- replace with your channel ID
 
 intents = discord.Intents.default()
-intents.guilds = True
-intents.members = True
+intents.messages = True
 intents.reactions = True
 intents.message_content = True
+intents.guilds = True
+intents.members = True
 
-bot = commands.Bot(command_prefix='P ', intents=intents)
+bot = commands.Bot(command_prefix='P', intents=intents)
 
-# ✏️ Replace these with your actual IDs
-CONTROL_CHANNEL_ID = 1389276304544764054  # Channel where you'll use the command
-TARGET_MESSAGE_ID = 1388951021270864173   # The message you want to check
+# message_id: set(user_ids who reacted)
+tracked_reactions = defaultdict(set)
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user}")
 
-@bot.command(name='', help="Usage: P <user_id> — checks the target message for reactions from that user.")
-async def check_react(ctx, user_id: int):
-    if ctx.channel.id != CONTROL_CHANNEL_ID:
-        return  # Only respond in the control channel
+@bot.event
+async def on_raw_reaction_add(payload):
+    message_id = payload.message_id
+    user_id = payload.user_id
 
+    # Don't track bot reactions
+    if user_id == bot.user.id:
+        return
+
+    tracked_reactions[message_id].add(user_id)
+
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
+
+    if message.channel.id != CONTROL_CHANNEL_ID:
+        return
+
+    if not message.content.startswith("P "):
+        return
+
+    # Parse message like: P <message_id>
     try:
-        # Fetch the message from any text channel in the guild
-        target_msg = None
-        for channel in ctx.guild.text_channels:
-            try:
-                msg = await channel.fetch_message(TARGET_MESSAGE_ID)
-                if msg:
-                    target_msg = msg
-                    break
-            except discord.NotFound:
-                continue
-
-        if not target_msg:
-            await ctx.send("❌ Couldn't find the target message.")
+        parts = message.content.strip().split()
+        if len(parts) != 2:
             return
 
-        matches = []
-        for reaction in target_msg.reactions:
-            users = await reaction.users().flatten()
-            if any(u.id == user_id for u in users):
-                matches.append(str(reaction.emoji))
+        msg_id = int(parts[1])
+        if msg_id not in tracked_reactions:
+            await message.channel.send(f"Message {msg_id} not tracked.")
+            return
 
-        if matches:
-            emojis = ", ".join(matches)
-            await ctx.send(f"✅ User <@{user_id}> reacted with: {emojis}")
-        else:
-            await ctx.send(f"❌ No reactions found from <@{user_id}> on that message.")
+        control_channel = bot.get_channel(CONTROL_CHANNEL_ID)
+
+        # Write P <user_id> for each user who reacted
+        for user_id in tracked_reactions[msg_id]:
+            await control_channel.send(f"P {user_id}")
+
+        # Now write P <user_id> for every user who reacted to a user who reacted
+        for uid in tracked_reactions[msg_id]:
+            for other_uid in tracked_reactions[msg_id]:
+                if uid != other_uid:
+                    await control_channel.send(f"P {other_uid}")
 
     except Exception as e:
-        await ctx.send(f"⚠️ Error occurred: `{e}`")
-
-# Startup
-token = os.getenv("DISCORD_TOKEN")
-if not token:
-    raise RuntimeError("❗ DISCORD_TOKEN is not set in env variables.")
-bot.run(token)
+        await message.channel.send(f"Error: {e}")
