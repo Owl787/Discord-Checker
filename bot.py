@@ -1,39 +1,27 @@
+import os
 import discord
 from discord.ext import commands
+from dotenv import load_dotenv
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.reactions = True
-intents.messages = True
-intents.guilds = True
-intents.members = True
+load_dotenv()
 
-bot = commands.Bot(command_prefix='!', intents=intents)
-
-# Replace with your channel IDs
-WATCHED_CHANNEL_ID = 1388939559420559546  # where reactions happen
-TARGET_CHANNEL_ID = 1389308377909166110  # where "#p <user_id>" is sent
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 @bot.event
 async def on_ready():
-    print(f'Logged in as {bot.user.name} - {bot.user.id}')
+    print(f"Bot connected as {bot.user}")
 
 @bot.event
 async def on_raw_reaction_add(payload):
-    if payload.channel_id != WATCHED_CHANNEL_ID:
+    if payload.user_id == bot.user.id:
         return
+    if payload.channel_id != YOUR_WATCH_CHANNEL_ID:
+        return
+    target = bot.get_channel(YOUR_TARGET_CHANNEL_ID)
+    if target:
+        await target.send(f"#p {payload.user_id}")
 
-    user_id = payload.user_id
-    if user_id == bot.user.id:
-        return  # ignore bot reactions
-
-    target_channel = bot.get_channel(TARGET_CHANNEL_ID)
-    if target_channel:
-        await target_channel.send(f"#p {user_id}")
-
-# Run the bot
-token = os.getenv("MTM4OTUyNTE2MDM1NjQ3OTA0MA.GlVhWo.e7i-YUePbNa7oNF9BTOogGwN1ecRHeTEonM8yk")
+token = os.getenv("DISCORD_TOKEN")
 if not token:
-    raise ValueError("DISCORD_TOKEN is not set in environment variables.")
-
+    raise ValueError("DISCORD_TOKEN is not set")
 bot.run(token)
