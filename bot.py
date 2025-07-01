@@ -14,8 +14,8 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='P ', intents=intents)
 
 # ✏️ Replace these with your actual IDs
-CONTROL_CHANNEL_ID = 1388939559420559546  # Channel where you'll use the command
-TARGET_MESSAGE_ID = 1389276304544764054   # The message you want to check
+CONTROL_CHANNEL_ID = 1389276304544764054  # Channel where you'll use the command
+TARGET_MESSAGE_ID = 1388951021270864173   # The message you want to check
 
 @bot.event
 async def on_ready():
